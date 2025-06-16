@@ -1,0 +1,34 @@
+import RPi.GPIO as GPIO
+import time
+import datetime
+from picamera import PiCamera
+import telepot
+
+# Initialize components
+GPIO.setmode(GPIO.BCM)
+PIR = 17
+GPIO.setup(PIR, GPIO.IN)
+
+camera = PiCamera()
+bot = telepot.Bot('YOUR_API_KEY')
+chat_id = YOUR_CHAT_ID
+
+print("Security camera initialized.")
+try:
+    while True:
+        if GPIO.input(PIR):
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            photo_file = f"/home/pi/{timestamp}.jpg"
+
+            camera.capture(photo_file)
+
+            bot.sendMessage(chat_id, "Motion Detected.")
+            with open(photo_file, 'rb') as photo:
+                bot.sendPhoto(chat_id, photo)
+
+            time.sleep(10)  # avoid repeated messages immediately
+        time.sleep(1)
+
+except KeyboardInterrupt:
+    GPIO.cleanup()
+    camera.close()
